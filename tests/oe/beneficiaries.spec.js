@@ -92,3 +92,4 @@ test('allocation summary reflects what has been saved', async ({ page }) => {
     `Summary says ${totals.primary}% but the saved primary beneficiaries total ${primarySum}%`,
   ).toBeCloseTo(primarySum, 2);
 });
+
