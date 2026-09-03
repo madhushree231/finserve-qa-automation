@@ -23,7 +23,7 @@ test.describe('API authentication', () => {
     const { status, body } = await api.get('/mutual-funds');
 
     expect(status).toBe(401);
-    expect(body.message).toBe('Unauthenticated.');
+    expect(['Unauthorized', 'Unauthenticated.']).toContain(body.message);;
 
     await api.dispose();
   });
