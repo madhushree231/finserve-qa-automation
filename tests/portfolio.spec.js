@@ -88,3 +88,53 @@ test('type filter returns only the selected type', async ({ page }) => {
     `Type filter returned ${wrong.length} non-Investment rows: ${wrong.join(', ')}`,
   ).toHaveLength(0);
 });
+
+test('search returns only transactions matching the term', async ({ page }) => {
+  const transactions = new TransactionsPage(page);
+  await transactions.goto();
+
+  await transactions.applyFilters({ search: 'Midcap' });
+  const products = await transactions.listedProducts();
+
+  expect(products.length, 'Search returned nothing').toBeGreaterThan(0);
+
+  const wrong = products.filter((p) => !p.toLowerCase().includes('midcap'));
+  expect(
+    wrong,
+    `Search for "Midcap" returned ${wrong.length} other products: ${wrong.join(', ')}`,
+  ).toHaveLength(0);
+});
+
+test('search by reference finds that exact transaction', async ({ page }) => {
+  const transactions = new TransactionsPage(page);
+  await transactions.goto();
+
+  const references = await transactions.listedReferences();
+  expect(references.length).toBeGreaterThan(0);
+  const target = references[0];
+
+  await transactions.applyFilters({ search: target });
+  const found = await transactions.listedReferences();
+
+  expect(found, `Searching for ${target} did not return it`).toContain(target);
+  expect(found.length, `Searching a unique reference returned ${found.length} rows`).toBe(1);
+});
+
+test('pagination counts agree with the rows shown', async ({ page }) => {
+  const transactions = new TransactionsPage(page);
+  await transactions.goto();
+
+  const counts = await transactions.paginationCounts();
+  test.skip(!counts, 'No pagination on this page');
+
+  const rowCount = await transactions.rowCount();
+  const expected = counts.to - counts.from + 1;
+
+  expect(
+    rowCount,
+    `Pagination says ${counts.from} to ${counts.to} of ${counts.total}, ` +
+    `but ${rowCount} rows are shown`,
+  ).toBe(expected);
+
+  expect(counts.total).toBeGreaterThanOrEqual(counts.to);
+});
