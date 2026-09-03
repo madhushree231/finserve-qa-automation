@@ -13,6 +13,7 @@ class OeDashboardPage {
 
     this.table = page.getByTestId('dashboard-applications-table');
     this.rows = this.table.locator('tbody tr');
+    this.applicationsTable = page.getByTestId('applications-table');
   }
 
   /** The five states an application can be in. */
@@ -54,9 +55,19 @@ class OeDashboardPage {
   async rowCount() { return this.rows.count(); }
 
   /** Every row as an object, since most columns have no test id. */
+    /**
+   * Reads whichever applications table is on the current page. The
+   * dashboard and the full list use different test ids for the same
+   * kind of table.
+   */
   async listedApplications() {
-    const rows = await this.rows.all();
+    const table = (await this.applicationsTable.count()) > 0
+      ? this.applicationsTable
+      : this.table;
+
+    const rows = await table.locator('tbody tr').all();
     const applications = [];
+
     for (const row of rows) {
       const cells = await row.locator('td').allInnerTexts();
       applications.push({

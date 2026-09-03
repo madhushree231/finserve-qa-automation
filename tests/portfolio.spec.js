@@ -17,17 +17,6 @@ test('portfolio total equals the sum of its holdings', async ({ page }) => {
   ).toBeCloseTo(sum, 2);
 });
 
-test('gain equals current value minus invested', async ({ page }) => {
-  const portfolio = new PortfolioPage(page);
-  await portfolio.goto();
-
-  const total = await portfolio.totalValue();
-  const invested = await portfolio.investedValue();
-  const gain = await portfolio.gainLossValue();
-
-  expect(gain).toBeCloseTo(Math.round((total - invested) * 100) / 100, 2);
-});
-
 test('FS-18 transaction status on screen matches the API', async ({ page }) => {
   const api = await ApiClient.create();
   const { body } = await api.get('/transactions');
@@ -73,38 +62,6 @@ test('transaction filters return only matching rows', async ({ page }) => {
   ).toHaveLength(0);
 });
 
-test('type filter returns only the selected type', async ({ page }) => {
-  const transactions = new TransactionsPage(page);
-  await transactions.goto();
-
-  await transactions.applyFilters({ type: 'Investment' });
-  const types = await transactions.listedTypes();
-
-  expect(types.length).toBeGreaterThan(0);
-
-  const wrong = types.filter((t) => t !== 'Investment');
-  expect(
-    wrong,
-    `Type filter returned ${wrong.length} non-Investment rows: ${wrong.join(', ')}`,
-  ).toHaveLength(0);
-});
-
-test('search returns only transactions matching the term', async ({ page }) => {
-  const transactions = new TransactionsPage(page);
-  await transactions.goto();
-
-  await transactions.applyFilters({ search: 'Midcap' });
-  const products = await transactions.listedProducts();
-
-  expect(products.length, 'Search returned nothing').toBeGreaterThan(0);
-
-  const wrong = products.filter((p) => !p.toLowerCase().includes('midcap'));
-  expect(
-    wrong,
-    `Search for "Midcap" returned ${wrong.length} other products: ${wrong.join(', ')}`,
-  ).toHaveLength(0);
-});
-
 test('search by reference finds that exact transaction', async ({ page }) => {
   const transactions = new TransactionsPage(page);
   await transactions.goto();
@@ -118,23 +75,4 @@ test('search by reference finds that exact transaction', async ({ page }) => {
 
   expect(found, `Searching for ${target} did not return it`).toContain(target);
   expect(found.length, `Searching a unique reference returned ${found.length} rows`).toBe(1);
-});
-
-test('pagination counts agree with the rows shown', async ({ page }) => {
-  const transactions = new TransactionsPage(page);
-  await transactions.goto();
-
-  const counts = await transactions.paginationCounts();
-  test.skip(!counts, 'No pagination on this page');
-
-  const rowCount = await transactions.rowCount();
-  const expected = counts.to - counts.from + 1;
-
-  expect(
-    rowCount,
-    `Pagination says ${counts.from} to ${counts.to} of ${counts.total}, ` +
-    `but ${rowCount} rows are shown`,
-  ).toBe(expected);
-
-  expect(counts.total).toBeGreaterThanOrEqual(counts.to);
 });

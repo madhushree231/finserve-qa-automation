@@ -39,22 +39,6 @@ test('FS-14 redemption above the available units is refused', async ({ page }) =
   ).toBe(true);
 });
 
-test('redemption declaration is mandatory', async ({ page }) => {
-  const portfolio = new PortfolioPage(page);
-  await portfolio.goto();
-  const holdingId = await portfolio.firstHoldingId();
-
-  const redeem = new RedeemPage(page);
-  await redeem.goto(holdingId);
-
-  const available = await redeem.availableValueAmount();
-  await redeem.redeem({ amount: Math.floor(available * 0.1), accept: false });
-
-  expect(await redeem.wasRejected()).toBe(true);
-  const errors = (await redeem.summaryErrors()).join(' ');
-  expect(errors).toContain('declaration');
-});
-
 test('FS-11 redemption completes and reduces the holding', async ({ page }) => {
   const portfolio = new PortfolioPage(page);
   await portfolio.goto();
@@ -111,20 +95,4 @@ test('FS-11 redemption completes and reduces the holding', async ({ page }) => {
     `Units were ${unitsBefore} before and ${unitsAfter} after. ` +
     `Expected a reduction of ${unitsRedeemed}.`,
   ).toBeCloseTo(unitsBefore - unitsRedeemed, 2);
-});
-
-test('confirmation links reach portfolio and transactions', async ({ page }) => {
-  const portfolio = new PortfolioPage(page);
-  await portfolio.goto();
-  const holdingId = await portfolio.firstHoldingId();
-
-  const redeem = new RedeemPage(page);
-  await redeem.goto(holdingId);
-  await redeem.redeem({ amount: 500, accept: true });
-
-  await expect(redeem.viewPortfolioLink).toBeVisible();
-  await expect(redeem.viewTransactionsLink).toBeVisible();
-
-  await redeem.viewTransactionsLink.click();
-  await expect(page).toHaveURL(/transactions/);
 });

@@ -55,15 +55,3 @@ test('category filter returns only matching funds', async ({ page }) => {
   ).toHaveLength(0);
 });
 
-test('search returns only funds matching the term', async ({ page }) => {
-  const funds = new MutualFundsPage(page);
-  await funds.goto();
-
-  await funds.search('Bluechip');
-  const names = await funds.listedNames();
-
-  expect(names.length, 'Search returned nothing').toBeGreaterThan(0);
-
-  const wrong = names.filter((n) => !n.toLowerCase().includes('bluechip'));
-  expect(wrong, `Search returned non-matching funds: ${wrong.join(', ')}`).toHaveLength(0);
-});

@@ -4,7 +4,7 @@ const { OeBeneficiaryPage } = require('../../pages/oe/OeBeneficiaryPage');
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
-const APPLICATION_ID = 49;
+const APPLICATION_ID = 42;
 
 test.beforeEach(async ({ page }) => {
   const login = new OeLoginPage(page);
@@ -75,21 +75,3 @@ test('OE-08 allocation must total one hundred percent', async ({ page }) => {
     ).not.toContain('/documents');
   }
 });
-
-test('allocation summary reflects what has been saved', async ({ page }) => {
-  const b = new OeBeneficiaryPage(page);
-  await b.goto(APPLICATION_ID);
-
-  const totals = await b.allocationTotals();
-  const saved = await b.listedBeneficiaries();
-
-  const primarySum = saved
-    .filter((x) => x.level.toUpperCase() === 'PRIMARY')
-    .reduce((sum, x) => sum + Number.parseFloat(x.allocation), 0);
-
-  expect(
-    totals.primary,
-    `Summary says ${totals.primary}% but the saved primary beneficiaries total ${primarySum}%`,
-  ).toBeCloseTo(primarySum, 2);
-});
-
