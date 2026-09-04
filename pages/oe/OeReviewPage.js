@@ -5,6 +5,7 @@ class OeReviewPage {
 
     this.validationErrors = page.getByTestId('review-validation-errors');
     this.validationErrorItems = this.validationErrors.locator('li');
+    this.validationSuccess = page.getByTestId('review-validation-success');
     this.validateButton = page.getByTestId('review-validate-button');
     this.submitButton = page.getByTestId('review-submit-application-button');
     this.backButton = page.getByTestId('review-back-button');
@@ -12,7 +13,12 @@ class OeReviewPage {
     this.snapshot = page.getByTestId('review-application-snapshot');
     this.calculatedAge = page.getByTestId('review-client-calculated-age');
     this.totalPremium = page.getByTestId('review-total-premium');
-    this.confirmationReference = page.locator('.alert-success, .bg-success').first();
+
+    // Confirmation, reached after submitting.
+    this.confirmationPage = page.getByTestId('submission-confirmation-page');
+    this.confirmationReference = page.getByTestId('confirmation-reference-number');
+    this.viewStatusLink = page.getByTestId('confirmation-view-status-link');
+    this.dashboardLink = page.getByTestId('confirmation-dashboard-link');
   }
 
   async goto(applicationId) {
@@ -32,6 +38,11 @@ class OeReviewPage {
 
   async hasBlockingErrors() {
     return this.validationErrors.isVisible();
+  }
+
+  /** True when validation reported no blocking errors. */
+  async validationPassed() {
+    return this.validationSuccess.isVisible();
   }
 
   /** Submit is disabled while blocking errors remain. */
@@ -60,12 +71,19 @@ class OeReviewPage {
     return Number.parseFloat(text.replace(/[$,]/g, ''));
   }
 
-  async wasSubmitted() {
-    return this.page.url().includes('/confirmation');
-  }
-
   async status() {
     return (await this.snapshotValue('Status').innerText()).trim();
+  }
+
+  // --- confirmation ---
+
+  async wasSubmitted() {
+    return this.confirmationPage.isVisible();
+  }
+
+  /** e.g. WL2026090462898 */
+  async submissionReference() {
+    return (await this.confirmationReference.innerText()).trim();
   }
 }
 
